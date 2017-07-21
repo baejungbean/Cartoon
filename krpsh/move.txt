@@ -1,0 +1,87 @@
+using UnityEngine;
+using System.Collections;
+
+public class MoveTest : MonoBehaviour {
+    public float moveForce;
+    public float skillUseForce;
+    private float force;
+    private float Limit_Speed;
+    private Rigidbody rb;
+    private Vector3 vec;
+    private Vector3 mouse;
+    public Transform moveJoyStick;
+	public Transform attackJoyStick;
+    public float playerAngle;
+    public bool isMoving;
+	public bool isAttacking; //03-24 update
+
+	Vector2 pixMoveJoyStickPosition; //03-24 update
+	Vector2 pixAttackJoyStickPosition; //03-24 update
+
+    // Use this for initialization
+    void Start()
+    {
+        rb = gameObject.GetComponent<Rigidbody>();
+        moveForce = 3000.0f;
+        skillUseForce = 1000.0f;
+		isMoving = false;
+
+		Vector3[] movejoystickposition = new Vector3[4]; //03-24 update
+		moveJoyStick.GetComponent<RectTransform> ().GetWorldCorners(movejoystickposition); //좌측 아래부터 시계방향으로 모서리좌표 구함 //03-24 update
+
+		Vector3[] attackjoystickposition = new Vector3[4];//03-24 update
+		attackJoyStick.GetComponent<RectTransform> ().GetWorldCorners (attackjoystickposition);//03-24 update
+
+		pixMoveJoyStickPosition = new Vector2 (movejoystickposition [0].x + (movejoystickposition [3].x - movejoystickposition [0].x) / 2, movejoystickposition [0].y + (movejoystickposition [1].y - movejoystickposition [0].y) / 2); //03-24 update
+		pixAttackJoyStickPosition = new Vector2 (attackjoystickposition [0].x + (attackjoystickposition [3].x - attackjoystickposition [0].x) / 2, attackjoystickposition [0].y + (attackjoystickposition [1].y - attackjoystickposition [0].y) / 2); //03-24 update
+    }
+
+    void Update()
+    {
+		if (isMoving)
+        {
+            mouse = Input.mousePosition;
+			float playerAngle = Mathf.Rad2Deg * Mathf.Atan2(mouse.x - pixMoveJoyStickPosition.x, mouse.y - pixMoveJoyStickPosition.y);
+			if (isAttacking)
+            {
+                force = skillUseForce;
+            }
+            else
+            {
+                force = moveForce;
+            }
+			moveJoyStick.rotation=Quaternion.Euler(0, 0, -playerAngle);
+            //transform.rotation = Quaternion.Euler(0, playerAngle, 0); 원본
+            vec = new Vector3(Mathf.Sin(playerAngle * Mathf.Deg2Rad) * force, 0, Mathf.Cos(playerAngle * Mathf.Deg2Rad) * force);
+
+            rb.AddForce(vec, ForceMode.Force);
+        }
+		//03-24 update
+		if (isAttacking) 
+		{
+			mouse = Input.mousePosition;
+			float playerAngle = Mathf.Rad2Deg * Mathf.Atan2(mouse.x - pixAttackJoyStickPosition.x, mouse.y - pixAttackJoyStickPosition.y);
+			attackJoyStick.rotation=Quaternion.Euler(0, 0, -playerAngle);
+			transform.rotation = Quaternion.Euler(0, playerAngle, 0);
+		}
+    }
+    // Update is called once per frame
+    public void Move()
+    {
+		isMoving = true;
+    }
+    public void MoveEnd()
+    {
+		isMoving = false;
+    }
+	//03-24 update
+	public void Atack()
+	{
+		isAttacking = true;
+	}
+	//03-24 update
+	public void AtackEnd()
+	{
+		isAttacking = false;
+	}
+}
